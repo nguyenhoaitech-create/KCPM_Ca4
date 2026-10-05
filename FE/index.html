@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="description" content="Ứng dụng Khảo sát Giao thông Thông minh ITS - Intelligent Transportation System Survey Application">
+    <meta name="theme-color" content="#0ea5e9">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Ứng dụng Khảo sát Giao thông Thông minh (ITS)</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Font Awesome 6 Pro -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Leaflet CSS & Plugins -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.fullscreen@2.4.0/Control.FullScreen.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-minimap@3.6.1/dist/Control.MiniMap.min.css" />
+    
+    <!-- Animations & UI Libs -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css" />
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6.3.7/dist/tippy.css" />
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6.3.7/animations/scale.css" />
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6.3.4/themes/light-border.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen" data-testid="loading-screen">
+        <div class="loader-container">
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <div class="loader-icon">
+                <i class="fas fa-traffic-light"></i>
+            </div>
+        </div>
+        <p class="loader-text">Đang khởi động ITS Survey...</p>
+        <div class="loader-progress">
+            <div class="loader-progress-bar"></div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header" data-aos="fade-down" data-testid="app-header">
+            <div class="header-content">
+                <div class="header-brand">
+                    <div class="header-logo">
+                        <i class="fas fa-traffic-light"></i>
+                    </div>
+                    <div class="header-text">
+                        <h1 data-testid="app-title">ITS Survey</h1>
+                        <p>Intelligent Transportation System</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button id="btnThemeToggle" class="header-btn" data-tippy-content="Chế độ tối/sáng" data-testid="btn-theme-toggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button id="btnFullscreen" class="header-btn" data-tippy-content="Toàn màn hình" data-testid="btn-fullscreen">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                    <button id="btnSettings" class="header-btn" data-tippy-content="Cài đặt" data-testid="btn-settings">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Map Container -->
+            <div class="map-section">
+                <div id="map" data-testid="map-container"></div>
+                
+                <!-- Search Bar -->
+                <div class="map-search" data-aos="fade-down" data-aos-delay="100">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm địa điểm..." autocomplete="off" data-testid="search-input">
+                    <button id="btnVoiceSearch" class="voice-btn" data-tippy-content="Tìm kiếm giọng nói" data-testid="btn-voice-search">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
+                
+                <!-- Toolbar -->
+                <div class="map-toolbar" data-aos="fade-right" data-aos-delay="200">
+                    <button id="btnGetLocation" class="toolbar-btn" data-tippy-content="Vị trí hiện tại" data-testid="btn-get-location">
+                        <i class="fas fa-crosshairs"></i>
+                    </button>
+                    <button id="btnDrawRoute" class="toolbar-btn" data-tippy-content="Vẽ tuyến đường" data-testid="btn-draw-route">
+                        <i class="fas fa-route"></i>
+                    </button>
+                    <button id="btnMeasureDistance" class="toolbar-btn" data-tippy-content="Đo khoảng cách" data-testid="btn-measure-distance">
+                        <i class="fas fa-ruler"></i>
+                    </button>
+                    <button id="btnHeatmap" class="toolbar-btn" data-tippy-content="Bản đồ nhiệt" data-testid="btn-heatmap">
+                        <i class="fas fa-fire"></i>
+                    </button>
+                    <button id="btnCluster" class="toolbar-btn" data-tippy-content="Gom nhóm điểm" data-testid="btn-cluster">
+                        <i class="fas fa-object-group"></i>
+                    </button>
+                    <button id="btnWeather" class="toolbar-btn" data-tippy-content="Thời tiết" data-testid="btn-weather">
+                        <i class="fas fa-cloud-sun"></i>
+                    </button>
+                    <div class="toolbar-divider"></div>
+                    <button id="btnClearAll" class="toolbar-btn danger" data-tippy-content="Xóa tất cả" data-testid="btn-clear-all">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+
+                <!-- Quick Stats Floating -->
+                <div class="map-quick-stats" data-aos="fade-up" data-aos-delay="300">
+                    <div class="quick-stat" data-tippy-content="Tổng điểm khảo sát">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span id="quickTotalPoints" data-testid="quick-total-points">0</span>
+                    </div>
+                    <div class="quick-stat warning" data-tippy-content="Điểm ùn tắc">
+                        <i class="fas fa-car-crash"></i>
+                        <span id="quickCongestion" data-testid="quick-congestion">0</span>
+                    </div>
+                    <div class="quick-stat success" data-tippy-content="GPS chính xác">
+                        <i class="fas fa-satellite-dish"></i>
+                        <span id="quickAccuracy" data-testid="quick-accuracy">--</span>
+                    </div>
+                </div>
+
+                <!-- Measurement Panel -->
+                <div id="measurePanel" class="measure-panel hidden" data-testid="measure-panel">
+                    <div class="measure-content">
+                        <i class="fas fa-ruler-combined"></i>
+                        <span id="measureText" data-testid="measure-text">Khoảng cách: 0 m</span>
+                    </div>
+                    <button id="closeMeasure" data-testid="btn-close-measure"><i class="fas fa-times"></i></button>
+                </div>
+
+                <!-- Weather Widget -->
+                <div id="weatherWidget" class="weather-widget hidden" data-testid="weather-widget">
+                    <div class="weather-icon">
+                        <i class="fas fa-sun"></i>
+                    </div>
+                    <div class="weather-info">
+                        <span class="weather-temp" data-testid="weather-temp">--°C</span>
+                        <span class="weather-desc" data-testid="weather-desc">--</span>
+                    </div>
+                    <button class="weather-close" data-testid="btn-close-weather"><i class="fas fa-times"></i></button>
+                </div>
+
+                <!-- Map Controls -->
+                <div class="map-controls">
+                    <button id="btnAddMarker" class="btn btn-primary btn-glow" data-testid="btn-add-marker-floating">
+                        <i class="fas fa-plus"></i> 
+                        <span>Thêm điểm khảo sát</span>
+                    </button>
+                    <button id="btnExportReport" class="btn btn-accent" data-testid="btn-export-report-floating">
+                        <i class="fas fa-file-alt"></i> 
+                        <span>Xuất báo cáo</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar" data-testid="sidebar">
+                <!-- Tabs -->
+                <div class="sidebar-tabs">
+                    <button class="tab-btn active" data-tab="survey" data-testid="tab-btn-survey">
+                        <i class="fas fa-map-marked-alt"></i> Khảo sát
+                    </button>
+                    <button class="tab-btn" data-tab="traffic" data-testid="tab-btn-traffic">
+                        <i class="fas fa-car"></i> Giao thông
+                    </button>
+                    <button class="tab-btn" data-tab="analysis" data-testid="tab-btn-analysis">
+                        <i class="fas fa-chart-bar"></i> Phân tích
+                    </button>
+                </div>
+
+                <!-- Tab Content: Survey -->
+                <div id="tab-survey" class="tab-content active" data-testid="tab-content-survey">
+                    <!-- Current Location Info -->
+                    <div class="info-card">
+                        <h3><i class="fas fa-location-arrow"></i> Vị trí & GPS</h3>
+                        <div class="location-info">
+                            <div class="info-row">
+                                <span class="label">Vĩ độ:</span>
+                                <span id="currentLat" class="value" data-testid="info-lat">--</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Kinh độ:</span>
+                                <span id="currentLng" class="value" data-testid="info-lng">--</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Độ chính xác:</span>
+                                <span id="accuracy" class="value" data-testid="info-accuracy">--</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Tốc độ:</span>
+                                <span id="speed" class="value" data-testid="info-speed">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add Survey Point Form -->
+                    <div class="info-card">
+                        <h3><i class="fas fa-plus-circle"></i> Thêm điểm khảo sát ITS</h3>
+                        <form id="surveyForm" data-testid="survey-form">
+                            <div class="form-group">
+                                <label for="pointName">Tên điểm:</label>
+                                <input type="text" id="pointName" placeholder="VD: Ngã tư Láng Hạ" required data-testid="input-point-name">
+                            </div>
+                            <div class="form-group">
+                                <label for="pointCategory">Loại hạ tầng:</label>
+                                <select id="pointCategory" data-testid="select-point-category">
+                                    <optgroup label="🚦 Hạ tầng giao thông">
+                                        <option value="intersection">Nút giao thông</option>
+                                        <option value="traffic-light">Đèn tín hiệu</option>
+                                        <option value="camera">Camera giám sát</option>
+                                        <option value="sensor">Cảm biến giao thông</option>
+                                        <option value="vms">Biển báo điện tử (VMS)</option>
+                                    </optgroup>
+                                    <optgroup label="🚌 Điểm dừng đỗ">
+                                        <option value="bus-stop">Trạm xe buýt</option>
+                                        <option value="parking">Bãi đỗ xe</option>
+                                        <option value="station">Nhà ga/Bến xe</option>
+                                    </optgroup>
+                                    <optgroup label="⚠️ Vấn đề giao thông">
+                                        <option value="congestion">Điểm ùn tắc</option>
+                                        <option value="accident">Điểm hay tai nạn</option>
+                                        <option value="roadwork">Công trình đường</option>
+                                    </optgroup>
+                                    <optgroup label="📍 Khác">
+                                        <option value="toll">Trạm thu phí</option>
+                                        <option value="fuel">Trạm xăng</option>
+                                        <option value="other">Khác</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="trafficFlow">Mật độ giao thông:</label>
+                                <select id="trafficFlow" data-testid="select-traffic-flow">
+                                    <option value="low">🟢 Thấp (Thông thoáng)</option>
+                                    <option value="medium">🟡 Trung bình</option>
+                                    <option value="high">🟠 Cao (Đông đúc)</option>
+                                    <option value="congested">🔴 Ùn tắc</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="roadCondition">Tình trạng đường:</label>
+                                <select id="roadCondition" data-testid="select-road-condition">
+                                    <option value="good">✅ Tốt</option>
+                                    <option value="fair">⚡ Trung bình</option>
+                                    <option value="poor">⚠️ Kém</option>
+                                    <option value="damaged">❌ Hư hỏng</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="laneCount">Số làn đường:</label>
+                                <input type="number" id="laneCount" min="1" max="10" value="2" data-testid="input-lane-count">
+                            </div>
+                            <div class="form-group">
+                                <label for="pointDescription">Mô tả chi tiết:</label>
+                                <textarea id="pointDescription" placeholder="Mô tả tình trạng, đặc điểm giao thông..." data-testid="input-point-description"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block" data-testid="btn-submit-survey">
+                                <i class="fas fa-save"></i> Lưu điểm khảo sát
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Survey Points List -->
+                    <div class="info-card">
+                        <h3><i class="fas fa-list"></i> Danh sách điểm (<span id="pointCount" data-testid="point-count-display">0</span>)</h3>
+                        <div class="filter-bar">
+                            <select id="filterCategory" data-testid="select-filter-category">
+                                <option value="all">-- Tất cả loại --</option>
+                                <option value="intersection">Nút giao thông</option>
+                                <option value="traffic-light">Đèn tín hiệu</option>
+                                <option value="camera">Camera giám sát</option>
+                                <option value="bus-stop">Trạm xe buýt</option>
+                                <option value="congestion">Điểm ùn tắc</option>
+                                <option value="accident">Điểm tai nạn</option>
+                            </select>
+                        </div>
+                        <div id="surveyPointsList" class="survey-list" data-testid="survey-points-list">
+                            <p class="empty-message">Chưa có điểm khảo sát nào</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Traffic -->
+                <div id="tab-traffic" class="tab-content" data-testid="tab-content-traffic">
+                    <div class="info-card">
+                        <h3><i class="fas fa-clock"></i> Ghi nhận hành trình</h3>
+                        <div class="tracking-controls">
+                            <button id="btnStartTracking" class="btn btn-success btn-block" data-testid="btn-start-tracking">
+                                <i class="fas fa-play"></i> Bắt đầu ghi hành trình
+                            </button>
+                            <button id="btnStopTracking" class="btn btn-danger btn-block hidden" data-testid="btn-stop-tracking">
+                                <i class="fas fa-stop"></i> Dừng ghi
+                            </button>
+                        </div>
+                        <div id="trackingInfo" class="tracking-info">
+                            <div class="tracking-stat">
+                                <i class="fas fa-road"></i>
+                                <span class="stat-label">Quãng đường:</span>
+                                <span id="trackDistance" class="stat-value" data-testid="track-distance">0 m</span>
+                            </div>
+                            <div class="tracking-stat">
+                                <i class="fas fa-stopwatch"></i>
+                                <span class="stat-label">Thời gian:</span>
+                                <span id="trackTime" class="stat-value" data-testid="track-time">00:00:00</span>
+                            </div>
+                            <div class="tracking-stat">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span class="stat-label">Tốc độ TB:</span>
+                                <span id="trackAvgSpeed" class="stat-value" data-testid="track-avg-speed">0 km/h</span>
+                            </div>
+                            <div class="tracking-stat">
+                                <i class="fas fa-bolt"></i>
+                                <span class="stat-label">Tốc độ Max:</span>
+                                <span id="trackMaxSpeed" class="stat-value" data-testid="track-max-speed">0 km/h</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <h3><i class="fas fa-history"></i> Lịch sử hành trình</h3>
+                        <div id="tripHistory" class="trip-history" data-testid="trip-history-list">
+                            <p class="empty-message">Chưa có hành trình nào</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Analysis -->
+                <div id="tab-analysis" class="tab-content" data-testid="tab-content-analysis">
+                    <div class="info-card">
+                        <h3><i class="fas fa-chart-pie"></i> Thống kê tổng quan</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item blue">
+                                <span class="stat-value" id="totalPoints" data-testid="stat-total-points">0</span>
+                                <span class="stat-label">Tổng điểm</span>
+                            </div>
+                            <div class="stat-item green">
+                                <span class="stat-value" id="totalDistance" data-testid="stat-total-distance">0</span>
+                                <span class="stat-label">Km khảo sát</span>
+                            </div>
+                            <div class="stat-item orange">
+                                <span class="stat-value" id="congestionPoints" data-testid="stat-congestion-points">0</span>
+                                <span class="stat-label">Điểm ùn tắc</span>
+                            </div>
+                            <div class="stat-item red">
+                                <span class="stat-value" id="accidentPoints" data-testid="stat-accident-points">0</span>
+                                <span class="stat-label">Điểm nguy hiểm</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <h3><i class="fas fa-chart-bar"></i> Phân bố theo loại hạ tầng</h3>
+                        <canvas id="categoryChart" height="200" data-testid="chart-category"></canvas>
+                    </div>
+
+                    <div class="info-card">
+                        <h3><i class="fas fa-traffic-light"></i> Mật độ giao thông</h3>
+                        <canvas id="trafficChart" height="200" data-testid="chart-traffic"></canvas>
+                    </div>
+
+                    <div class="info-card">
+                        <h3><i class="fas fa-download"></i> Xuất dữ liệu</h3>
+                        <div class="export-buttons">
+                            <button id="btnExportJSON" class="btn btn-secondary btn-block" data-testid="btn-export-json">
+                                <i class="fas fa-file-code"></i> Xuất JSON
+                            </button>
+                            <button id="btnExportCSV" class="btn btn-secondary btn-block" data-testid="btn-export-csv">
+                                <i class="fas fa-file-csv"></i> Xuất CSV (Excel)
+                            </button>
+                            <button id="btnExportGeoJSON" class="btn btn-secondary btn-block" data-testid="btn-export-geojson">
+                                <i class="fas fa-globe"></i> Xuất GeoJSON
+                            </button>
+                            <button id="btnExportKML" class="btn btn-secondary btn-block" data-testid="btn-export-kml">
+                                <i class="fas fa-map"></i> Xuất KML
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <footer class="status-bar" data-testid="status-bar">
+            <span id="statusMessage" data-testid="status-message"><i class="fas fa-info-circle"></i> Sẵn sàng</span>
+            <span id="gpsStatus" data-testid="gps-status"><i class="fas fa-satellite"></i> GPS: Đang kết nối...</span>
+            <span id="lastUpdate" data-testid="last-update">Cập nhật: --</span>
+        </footer>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast" data-testid="toast-notification"></div>
+
+    <!-- Report Modal -->
+    <div id="reportModal" class="modal hidden" data-testid="report-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-file-alt"></i> Báo cáo khảo sát ITS</h2>
+                <button id="closeModal" class="modal-close" data-testid="btn-close-modal">&times;</button>
+            </div>
+            <div class="modal-body" id="reportContent" data-testid="report-content"></div>
+            <div class="modal-footer">
+                <button id="btnPrintReport" class="btn btn-primary" data-testid="btn-print-report">
+                    <i class="fas fa-print"></i> In báo cáo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Libraries (Leaflet, Chart.js, GSAP, SweetAlert, Notyf...) -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.js"></script>
+    <script src="https://unpkg.com/leaflet.fullscreen@2.4.0/Control.FullScreen.js"></script>
+    <script src="https://unpkg.com/leaflet-minimap@3.6.1/dist/Control.MiniMap.min.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    
+    <script src="https://unpkg.com/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://unpkg.com/tippy.js@6.3.7/dist/tippy-bundle.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/locale/vi.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/plugin/relativeTime.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@2.0.2/dist/lottie-player.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Main App -->
+    <script src="app.js"></script>
+</body>
+</html>
