@@ -1,6 +1,6 @@
 // ==========================================
 // ITS Survey Application - Intelligent Transportation System
-// Version: 5.0 - QA/Test Ready
+// Version: 5.0 - Tích hợp API Backend & Auth
 // ==========================================
 
 let map;
@@ -68,8 +68,8 @@ const trafficFlowConfig = {
   congested: { color: "#f44336", label: "Ùn tắc" },
 };
 
-document.addEventListener("DOMContentLoaded", function () {
-  setTimeout(hideLoadingScreen, 3000); // Fallback
+function initApp() {
+  setTimeout(hideLoadingScreen, 500);
 
   try {
     initLibraries();
@@ -94,9 +94,8 @@ document.addEventListener("DOMContentLoaded", function () {
     } catch (e) {
       console.error("App init error:", e);
     }
-    hideLoadingScreen();
-  }, 1000);
-});
+  }, 100);
+}
 
 function initLibraries() {
   if (typeof Notyf !== "undefined") {
@@ -758,7 +757,7 @@ function handleMapClick(e) {
   showToast("Đã chọn vị trí. Điền thông tin để lưu điểm khảo sát.", "info");
 }
 
-function handleAddSurveyPoint(event) {
+async function handleAddSurveyPoint(event) {
   event.preventDefault();
   if (!currentPosition) {
     showToast("Vui lòng chọn vị trí trước!", "warning");
@@ -771,7 +770,6 @@ function handleAddSurveyPoint(event) {
   }
 
   const surveyPoint = {
-    id: Date.now(),
     name: name,
     category: document.getElementById("pointCategory").value,
     trafficFlow: document.getElementById("trafficFlow").value,
@@ -784,15 +782,23 @@ function handleAddSurveyPoint(event) {
     timestamp: new Date().toISOString(),
   };
 
-  surveyPoints.push(surveyPoint);
-  addSurveyMarker(surveyPoint);
-  saveData();
-  updateSurveyPointsList();
-  updateStatistics();
-  updateCharts();
-  updateQuickStats();
-  document.getElementById("surveyForm").reset();
-  showToast(`Đã thêm: ${name}`, "success");
+  try {
+    const res = await fetchWithAuth("/surveys", {
+      method: "POST",
+      body: JSON.stringify(surveyPoint),
+    });
+    const savedPoint = await res.json();
+    surveyPoints.push(savedPoint);
+    addSurveyMarker(savedPoint);
+    updateSurveyPointsList();
+    updateStatistics();
+    updateCharts();
+    updateQuickStats();
+    document.getElementById("surveyForm").reset();
+    showToast(`Đã thêm: ${name}`, "success");
+  } catch (e) {
+    showToast("Lỗi lưu điểm khảo sát", "error");
+  }
 }
 
 function createMarkerIcon(category) {
@@ -875,20 +881,24 @@ function focusOnPoint(pointId) {
   }
 }
 
-function deletePoint(pointId) {
+async function deletePoint(pointId) {
   if (!confirm("Xóa điểm khảo sát này?")) return;
-  const markerIndex = surveyMarkers.findIndex((m) => m.id === pointId);
-  if (markerIndex !== -1) {
-    map.removeLayer(surveyMarkers[markerIndex].marker);
-    surveyMarkers.splice(markerIndex, 1);
+  try {
+    await fetchWithAuth(`/surveys/${pointId}`, { method: "DELETE" });
+    const markerIndex = surveyMarkers.findIndex((m) => m.id === pointId);
+    if (markerIndex !== -1) {
+      map.removeLayer(surveyMarkers[markerIndex].marker);
+      surveyMarkers.splice(markerIndex, 1);
+    }
+    surveyPoints = surveyPoints.filter((p) => p.id !== pointId);
+    updateSurveyPointsList();
+    updateStatistics();
+    updateCharts();
+    updateQuickStats();
+    showToast("Đã xóa điểm khảo sát", "success");
+  } catch (e) {
+    showToast("Không thể xóa điểm này", "error");
   }
-  surveyPoints = surveyPoints.filter((p) => p.id !== pointId);
-  saveData();
-  updateSurveyPointsList();
-  updateStatistics();
-  updateCharts();
-  updateQuickStats();
-  showToast("Đã xóa điểm khảo sát", "success");
 }
 
 function startTracking() {
@@ -1446,22 +1456,29 @@ function printReport() {
   window.print();
 }
 function saveData() {
-  localStorage.setItem("its-survey-points", JSON.stringify(surveyPoints));
   localStorage.setItem("its-trip-history", JSON.stringify(tripHistory));
 }
 
-function loadData() {
-  const savedPoints = localStorage.getItem("its-survey-points");
-  if (savedPoints) {
-    surveyPoints = JSON.parse(savedPoints);
+async function loadData() {
+  try {
+    const response = await fetchWithAuth("/surveys?page=1&limit=100");
+    const result = await response.json();
+
+    surveyPoints = result.data;
     surveyPoints.forEach((point) => addSurveyMarker(point));
     updateSurveyPointsList();
     updateStatistics();
-  }
-  const savedTrips = localStorage.getItem("its-trip-history");
-  if (savedTrips) {
-    tripHistory = JSON.parse(savedTrips);
-    updateTripHistory();
+    updateCharts();
+    updateQuickStats();
+
+    const savedTrips = localStorage.getItem("its-trip-history");
+    if (savedTrips) {
+      tripHistory = JSON.parse(savedTrips);
+      updateTripHistory();
+    }
+  } catch (error) {
+    console.error(error);
+    showToast("Lỗi lấy dữ liệu từ máy chủ", "error");
   }
 }
 
