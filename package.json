@@ -1,0 +1,25 @@
+{
+  "name": "da_its",
+  "version": "1.0.0",
+  "description": "> **Intelligent Transportation System Survey Application**\r > Ứng dụng web hiện đại hỗ trợ khảo sát và thu thập dữ liệu về hạ tầng giao thông thông minh, sử dụng GPS, bản đồ tương tác và hệ thống API Backend bảo mật.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nguyenhoaitech-create/KCPM_Ca4.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/nguyenhoaitech-create/KCPM_Ca4/issues"
+  },
+  "homepage": "https://github.com/nguyenhoaitech-create/KCPM_Ca4#readme",
+  "devDependencies": {
+    "codeceptjs": "^4.2.0",
+    "playwright": "^1.64.0"
+  }
+}

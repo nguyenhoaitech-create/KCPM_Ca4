@@ -1,4 +1,4 @@
-const API_BASE = "/api";
+const API_BASE = "http://localhost:8080/api";
 
 async function fetchWithAuth(endpoint, options = {}) {
   const token = localStorage.getItem("its_token");
