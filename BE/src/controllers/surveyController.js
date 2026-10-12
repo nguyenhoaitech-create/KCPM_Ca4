@@ -26,6 +26,11 @@ exports.createSurvey = (req, res) => {
 };
 
 exports.deleteSurvey = (req, res) => {
-  surveyModel.delete(req.params.id);
+  const isDeleted = surveyModel.delete(req.params.id);
+
+  if (!isDeleted) {
+    return res.status(404).json({ error: "Không tìm thấy khảo sát với ID này" });
+  }
+
   res.json({ message: "Đã xóa thành công" });
 };
