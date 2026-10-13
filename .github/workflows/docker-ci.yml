@@ -1,0 +1,61 @@
+name: Analyze and Build Docker Image
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  qodana:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Qodana Scan
+        uses: JetBrains/qodana-action@v2024.1
+        env:
+          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
+
+      - name: Upload Qodana Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qodana-report
+          path: ${{ runner.temp }}/qodana/results
+          retention-days: 7
+
+  build-and-push:
+    needs: qodana
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Backend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./BE
+          file: ./BE/Dockerfile
+          push: true
+          tags: |
+            hoainguyen0912/its-survey-be:latest
+            hoainguyen0912/its-survey-be:${{ github.sha }}
