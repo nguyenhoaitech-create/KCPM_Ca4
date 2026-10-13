@@ -1,14 +1,41 @@
-name: Build and Push Docker Image
+name: Analyze and Build Docker Image
 
 on:
   push:
-    branches: ["main"] # Hoặc nhánh mặc định của bạn (ví dụ: master)
+    branches: ["main"]
   pull_request:
     branches: ["main"]
 
 jobs:
-  build-and-push:
+  qodana:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Qodana Scan
+        uses: JetBrains/qodana-action@v2024.1
+        env:
+          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
+
+      - name: Upload Qodana Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qodana-report
+          path: ${{ runner.temp }}/qodana/results
+          retention-days: 7
+
+  build-and-push:
+    needs: qodana
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
 
     steps:
       - name: Checkout code
@@ -28,7 +55,7 @@ jobs:
         with:
           context: ./BE
           file: ./BE/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           tags: |
             hoainguyen0912/its-survey-be:latest
             hoainguyen0912/its-survey-be:${{ github.sha }}
