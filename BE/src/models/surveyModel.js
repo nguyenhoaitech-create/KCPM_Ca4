@@ -31,5 +31,7 @@ exports.add = (survey) => {
   return survey;
 };
 exports.delete = (id) => {
+  const lengthBefore = surveys.length;
   surveys = surveys.filter((s) => s.id != id);
+  return surveys.length < lengthBefore;
 };
