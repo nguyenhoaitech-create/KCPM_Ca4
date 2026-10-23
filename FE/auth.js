@@ -5,12 +5,16 @@ document.addEventListener("DOMContentLoaded", () => {
 function checkAuthAndInit() {
   const token = localStorage.getItem("its_token");
   if (token) {
-    document.getElementById("login-screen").style.display = "none";
-    document.querySelector(".app-container").style.display = "flex";
+    const loginScreen = document.getElementById("login-screen");
+    const appContainer = document.querySelector(".app-container");
+    if (loginScreen) loginScreen.style.display = "none";
+    if (appContainer) appContainer.style.display = "flex";
     if (typeof initApp === "function") initApp();
   } else {
-    document.getElementById("login-screen").style.display = "flex";
-    document.querySelector(".app-container").style.display = "none";
+    const loginScreen = document.getElementById("login-screen");
+    const appContainer = document.querySelector(".app-container");
+    if (loginScreen) loginScreen.style.display = "flex";
+    if (appContainer) appContainer.style.display = "none";
 
     const loading = document.getElementById("loadingScreen");
     if (loading) {
@@ -35,15 +39,19 @@ async function handleLogin() {
 
     if (res.ok) {
       localStorage.setItem("its_token", data.access_token);
-      errText.style.display = "none";
+      if (errText) errText.style.display = "none";
       checkAuthAndInit();
     } else {
-      errText.innerText = data.error;
-      errText.style.display = "block";
+      if (errText) {
+        errText.innerText = data.error || "Đăng nhập thất bại!";
+        errText.style.display = "block";
+      }
     }
   } catch (e) {
-    errText.innerText = "Lỗi kết nối máy chủ!";
-    errText.style.display = "block";
+    if (errText) {
+      errText.innerText = "Lỗi kết nối máy chủ!";
+      errText.style.display = "block";
+    }
   }
 }
 

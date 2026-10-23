@@ -819,8 +819,12 @@ function addSurveyMarker(point) {
   const flowConfig = trafficFlowConfig[point.trafficFlow];
 
   const popupContent = `
-        <div style="min-width: 220px;">
-            <h3 style="margin: 0 0 8px 0; color: ${config.color};"><i class="fas ${config.icon}"></i> ${point.name}</h3>
+        <!-- Thêm data-testid động vào đây để Test Automation nhận diện (Fix ISS-FE-23) -->
+        <div style="min-width: 220px;" data-testid="marker-popup-${point.id}">
+            
+            <!-- Đã bọc escapeHTML cho Tên điểm (Fix ISS-FE-02) -->
+            <h3 style="margin: 0 0 8px 0; color: ${config.color};"><i class="fas ${config.icon}"></i> ${escapeHTML(point.name)}</h3>
+            
             <div style="margin-bottom: 8px;">
                 <span style="display: inline-block; padding: 2px 8px; background: ${config.color}; color: white; border-radius: 4px; font-size: 11px;">${config.label}</span>
                 <span style="display: inline-block; padding: 2px 8px; background: ${flowConfig.color}; color: ${point.trafficFlow === "medium" ? "#333" : "white"}; border-radius: 4px; font-size: 11px; margin-left: 4px;">Mật độ: ${flowConfig.label}</span>
@@ -953,8 +957,8 @@ function updateTracking(lat, lng, speed) {
   }
   if (trackingPath) trackingPath.addLatLng([lat, lng]);
   document.getElementById("trackDistance").textContent = formatDistance(
-    calculateTotalDistance(),
-  );
+  calculateTotalDistance() * 1000,
+)
   document.getElementById("trackAvgSpeed").textContent =
     calculateAvgSpeed().toFixed(1) + " km/h";
 }
