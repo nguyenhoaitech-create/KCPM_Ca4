@@ -3,7 +3,7 @@ const router = express.Router();
 const surveyController = require("../controllers/surveyController");
 const authMiddleware = require("../middlewares/authMiddleware");
 
-router.get("/", authMiddleware.verifyToken, surveyController.getSurveys);
+router.get("/", surveyController.getSurveys);
 router.post("/", authMiddleware.verifyToken, surveyController.createSurvey);
 router.delete(
   "/:id",

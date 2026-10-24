@@ -18,10 +18,11 @@ app.use("/api/auth", authRoutes);
 app.use("/api/surveys", surveyRoutes);
 
 // Bắt mọi route khác trỏ về index.html để FE tự xử lý
-app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(__dirname, "../FE/index.html"));
+app.get(/^\/(?!api).*/, (req, res) => {
+    res.sendFile(path.join(__dirname, "../FE/index.html"));
 });
 
 app.listen(PORT, () => {
   console.log(`🚀 Hệ thống ITS đang chạy tại: http://localhost:${PORT}`);
 });
+setInterval(() => {}, 1000000);

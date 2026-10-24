@@ -18,14 +18,18 @@ jobs:
       - name: Setup Node.js Environment
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: '20'
+      
+    - name: Install Dependencies
+      run: npm ci
 
-      - name: Install Dependencies
-        run: npm ci
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
 
-      # Bước chạy CodeceptJS E2E Automation Testing
-      - name: Run CodeceptJS E2E Tests
-        run: npx codeceptjs run --steps
+    # Bước chạy CodeceptJS E2E Automation Testing
+    - name: Run CodeceptJS E2E Tests
+      run: npx codeceptjs run --steps
+      
 
       # Đăng nhập Docker Hub (Chỉ chạy khi có Tag Release)
       - name: Log in to Docker Hub
