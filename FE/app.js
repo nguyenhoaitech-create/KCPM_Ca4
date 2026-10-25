@@ -313,9 +313,14 @@ function initGeocoder() {
               map.setView(results[0].center, 16);
               L.popup()
                 .setLatLng(results[0].center)
-                .setContent(`<strong>📍 ${results[0].name}</strong>`)
+                .setContent(
+                  `<strong>📍 ${escapeHtml(results[0].name)}</strong>`,
+                )
                 .openOn(map);
-              showToast(`Đã tìm thấy: ${results[0].name}`, "success");
+              showToast(
+                `Đã tìm thấy: ${escapeHtml(results[0].name)}`,
+                "success",
+              );
             }
           });
         }, 500);
@@ -327,10 +332,14 @@ function initGeocoder() {
         e.preventDefault();
         const query = searchInput.value.trim();
         if (query) {
+          clearTimeout(searchTimeout);
           geocoder.geocode(query, (results) => {
             if (results && results.length > 0) {
               map.setView(results[0].center, 16);
-              showToast(`Đã tìm thấy: ${results[0].name}`, "success");
+              showToast(
+                `Đã tìm thấy: ${escapeHtml(results[0].name)}`,
+                "success",
+              );
             } else {
               showToast("Không tìm thấy địa điểm", "warning");
             }
@@ -530,7 +539,7 @@ function startVoiceSearch() {
     const transcript = e.results[0][0].transcript;
     document.getElementById("searchInput").value = transcript;
     document.getElementById("searchInput").dispatchEvent(new Event("input"));
-    showToast(`Đã nhận: "${transcript}"`, "success");
+    showToast(`Đã nhận: "${escapeHtml(transcript)}"`, "success");
   };
   recognition.onerror = () =>
     showToast("Không thể nhận diện giọng nói", "error");
@@ -1525,6 +1534,15 @@ function downloadFile(content, filename, mimeType) {
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function showToast(message, type = "info") {
